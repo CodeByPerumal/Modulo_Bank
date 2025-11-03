@@ -38,3 +38,21 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         data['username'] = self.user.username
         data['role'] = self.user.role
         return data
+
+
+class UserProfileUpdateSerializer(serializers.ModelSerializer):
+    """Serializer for customers updating their own profile."""
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'phone']
+
+class AdminUserRoleUpdateSerializer(serializers.ModelSerializer):
+    """Serializer for admin to update user roles."""
+    class Meta:
+        model = User
+        fields = ['role']
+
+class UserListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('id', 'username', 'email', 'role', 'phone')
