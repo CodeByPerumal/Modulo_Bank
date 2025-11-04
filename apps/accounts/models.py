@@ -2,6 +2,7 @@ from django.db import models
 from django.conf import settings
 from django.utils import timezone
 import uuid
+import random
 
 class Account(models.Model):
     ACCOUNT_TYPES = [
@@ -20,10 +21,25 @@ class Account(models.Model):
 
     def __str__(self):
         return f"{self.account_number} - {self.user.username}"
-
+    '''
     def save(self, *args, **kwargs):
         # Auto-generate account number if not set
         if not self.account_number:
             prefix = self.account_type[:2].upper()
             self.account_number = f"{prefix}{timezone.now().strftime('%Y%m%d%H%M%S')}"
         super().save(*args, **kwargs)
+        '''
+    def save(self, *args, **kwargs):
+        # Always generate a truly unique account number if not set
+        if not self.account_number:
+            self.account_number = self._generate_unique_account_number()
+        super().save(*args, **kwargs)
+
+    def _generate_unique_account_number(self):
+        """Generate a unique 12-digit account number with prefix."""
+        prefix = self.account_type[:2].upper() if self.account_type else "AC"
+        while True:
+            # Combine prefix + random 10-digit number
+            number = f"{prefix}{random.randint(10**9, 10**10 - 1)}"
+            if not Account.objects.filter(account_number=number).exists():
+                return number

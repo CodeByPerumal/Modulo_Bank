@@ -18,15 +18,36 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
+# urlpatterns = [
+#     path('admin/', admin.site.urls),
+#     path('api/v1/users/', include('apps.users.urls')),
+#     path('api/v1/accounts/', include('apps.accounts.urls')),
+#     path('api/v1/transactions/', include('apps.transactions.urls')),
+#     path('api/v1/loans/', include('apps.loans.urls')),
+#     path('api/v1/fraud/', include('apps.fraud.urls')),
+#     path('api/v1/notifications/', include('apps.notifications.urls')),
+#     path('api/v1/reports/', include('apps.reports.urls')),
+#     path('api/audit/', include('apps.audit.urls')),
+    
+
+
+# ]
+
+from django.contrib import admin
+from django.urls import path, include
+
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/v1/users/', include('apps.users.urls')),
-    path('api/v1/accounts/', include('apps.accounts.urls')),
-    path('api/v1/transactions/', include('apps.transactions.urls')),
-    path('api/v1/loans/', include('apps.loans.urls')),
-    path('api/v1/fraud/', include('apps.fraud.urls')),
-    path('api/v1/notifications/', include('apps.notifications.urls')),
-    path('api/v1/reports/', include('apps.reports.urls')),
 
+    # Namespaced API routes
+    path('api/v1/users/', include(('apps.users.urls', 'users'), namespace='users')),
+    path('api/v1/accounts/', include(('apps.accounts.urls', 'accounts'), namespace='accounts')),
+    path('api/v1/transactions/', include(('apps.transactions.urls', 'transactions'), namespace='transactions')),
+    path('api/v1/loans/', include(('apps.loans.urls', 'loans'), namespace='loans')),
+    path('api/v1/fraud/', include(('apps.fraud.urls', 'fraud'), namespace='fraud')),
+    path('api/v1/notifications/', include(('apps.notifications.urls', 'notifications'), namespace='notifications')),
+    path('api/v1/reports/', include(('apps.reports.urls', 'reports'), namespace='reports')),
+    path('api/audit/', include(('apps.audit.urls', 'audit'), namespace='audit')),
+    path('api/notifications/', include('apps.notifications.urls')), 
 ]
 
