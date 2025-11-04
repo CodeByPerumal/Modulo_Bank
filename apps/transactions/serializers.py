@@ -1,7 +1,8 @@
-'''from rest_framework import serializers
+from rest_framework import serializers
 from django.db import transaction as db_transaction
 from apps.accounts.models import Account
 from apps.transactions.models import Transaction
+
 
 class TransactionSerializer(serializers.ModelSerializer):
     class Meta:
@@ -13,13 +14,17 @@ class TransactionSerializer(serializers.ModelSerializer):
         sender = attrs['sender']
         receiver = attrs['receiver']
         amount = attrs['amount']
+        user = self.context['request'].user
 
+        if sender.user != user:
+            raise serializers.ValidationError("You can only transfer from your own account.")
         if sender == receiver:
             raise serializers.ValidationError("Sender and receiver accounts cannot be the same.")
-        if sender.balance < amount:
-            raise serializers.ValidationError("Insufficient balance in sender account.")
         if amount <= 0:
             raise serializers.ValidationError("Amount must be positive.")
+        if sender.balance < amount:
+            raise serializers.ValidationError("Insufficient balance in sender account.")
+
         return attrs
 
     def create(self, validated_data):
@@ -27,61 +32,14 @@ class TransactionSerializer(serializers.ModelSerializer):
         receiver = validated_data['receiver']
         amount = validated_data['amount']
 
-        with db_transaction.atomic():  # ensures both balances update safely
-            # Withdraw from sender
-            sender.balance -= amount
-            sender.save()
-
-            # Deposit to receiver
-            receiver.balance += amount
-            receiver.save()
-
-            validated_data['status'] = 'SUCCESS'
-            transaction_obj = Transaction.objects.create(**validated_data)
-
-        return transaction_obj
-        '''
-from rest_framework import serializers
-from django.db import transaction as db_transaction
-from apps.accounts.models import Account
-from apps.transactions.models import Transaction
-
-class TransactionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Transaction
-        fields = ['id', 'sender', 'receiver', 'amount', 'status', 'timestamp', 'description']
-        read_only_fields = ['id', 'status', 'timestamp', 'sender']  # ✅ Add sender here
-
-    def validate(self, attrs):
-        receiver = attrs['receiver']
-        amount = attrs['amount']
-
-        # sender will come from context (perform_create)
-        sender = self.context['request'].user.accounts.first()
-        if not sender:
-            raise serializers.ValidationError("Sender account not found for this user.")
-
-        if sender == receiver:
-            raise serializers.ValidationError("Sender and receiver accounts cannot be the same.")
-        if sender.balance < amount:
-            raise serializers.ValidationError("Insufficient balance in sender account.")
-        if amount <= 0:
-            raise serializers.ValidationError("Amount must be positive.")
-        return attrs
-
-    def create(self, validated_data):
-        sender = self.context['request'].user.accounts.first()
-        receiver = validated_data['receiver']
-        amount = validated_data['amount']
-
         with db_transaction.atomic():
             sender.balance -= amount
             sender.save()
+
             receiver.balance += amount
             receiver.save()
 
-            validated_data['sender'] = sender
             validated_data['status'] = 'SUCCESS'
             transaction_obj = Transaction.objects.create(**validated_data)
-        return transaction_obj
 
+        return transaction_obj

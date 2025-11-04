@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<div class="container py-5" style="max-width: 400px;">
+  <h2 class="text-center text-primary mb-4">Login to Your Account</h2>
+  <form method="post">
+    {% csrf_token %}
+    <div class="mb-3">
+      <label>Email</label>
+      <input type="email" class="form-control" placeholder="Enter email">
+    </div>
+    <div class="mb-3">
+      <label>Password</label>
+      <input type="password" class="form-control" placeholder="Enter password">
+    </div>
+    <button type="submit" class="btn btn-primary w-100">Login</button>
+  </form>
+  <p class="text-center text-muted mt-3">Don’t have an account? <a href="/register/">Sign up</a></p>
+</div>
+{% endblock %}

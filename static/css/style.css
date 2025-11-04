@@ -1,0 +1,22 @@
+body {
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+  background-color: #f8f9fa;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-primary {
+  background-color: #0056b3;
+  border: none;
+}
+
+.btn-primary:hover {
+  background-color: #004097;
+}
+
+footer {
+  color: #6c757d;
+}

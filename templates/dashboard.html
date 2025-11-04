@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block title %}Dashboard - Modulo Bank{% endblock %}
+
+{% block content %}
+<section class="container py-5">
+  <h2 class="fw-bold text-primary text-center mb-4">Welcome Back to Modulo Bank</h2>
+  <p class="text-center text-muted mb-5">Here’s an overview of your financial activity and insights.</p>
+
+  <!-- Summary Cards -->
+  <div class="row g-4 mb-4">
+    <div class="col-md-4">
+      <div class="card shadow-sm border-primary">
+        <div class="card-body text-center">
+          <h6 class="text-uppercase text-muted">Total Accounts</h6>
+          <h3 class="fw-bold text-primary">3</h3>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card shadow-sm border-success">
+        <div class="card-body text-center">
+          <h6 class="text-uppercase text-muted">Total Balance</h6>
+          <h3 class="fw-bold text-success">₹2,45,000</h3>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card shadow-sm border-danger">
+        <div class="card-body text-center">
+          <h6 class="text-uppercase text-muted">Fraud Alerts</h6>
+          <h3 class="fw-bold text-danger">1</h3>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Transactions -->
+  <div class="card shadow-sm mb-4">
+    <div class="card-header bg-primary text-white fw-semibold">Recent Transactions</div>
+    <div class="card-body p-0">
+      <table class="table mb-0 align-middle">
+        <thead class="table-light">
+          <tr>
+            <th>Date</th>
+            <th>Description</th>
+            <th>Type</th>
+            <th>Status</th>
+            <th>Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>03 Nov 2025</td>
+            <td>Deposit - Salary</td>
+            <td><span class="badge bg-success">Deposit</span></td>
+            <td><span class="badge bg-success">Success</span></td>
+            <td>₹75,000</td>
+          </tr>
+          <tr>
+            <td>02 Nov 2025</td>
+            <td>Electricity Bill</td>
+            <td><span class="badge bg-danger">Withdrawal</span></td>
+            <td><span class="badge bg-success">Success</span></td>
+            <td>₹1,200</td>
+          </tr>
+          <tr>
+            <td>01 Nov 2025</td>
+            <td>Transfer to Savings</td>
+            <td><span class="badge bg-info text-dark">Transfer</span></td>
+            <td><span class="badge bg-success">Success</span></td>
+            <td>₹5,000</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Notifications -->
+  <div class="card shadow-sm">
+    <div class="card-header bg-warning fw-semibold">Recent Notifications</div>
+    <div class="card-body">
+      <ul class="list-group list-group-flush">
+        <li class="list-group-item text-muted">
+          <strong>Security Update:</strong> We’ve enhanced your account protection features.
+        </li>
+        <li class="list-group-item text-muted">
+          <strong>New Offer:</strong> Earn cashback on every UPI transaction.
+        </li>
+        <li class="list-group-item text-muted">
+          <strong>System Maintenance:</strong> Scheduled downtime on Nov 10, 2025 (1 AM–3 AM).
+        </li>
+      </ul>
+    </div>
+  </div>
+</section>
+{% endblock %}

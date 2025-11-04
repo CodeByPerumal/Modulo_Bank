@@ -49,5 +49,8 @@ urlpatterns = [
     path('api/v1/reports/', include(('apps.reports.urls', 'reports'), namespace='reports')),
     path('api/audit/', include(('apps.audit.urls', 'audit'), namespace='audit')),
     path('api/notifications/', include('apps.notifications.urls')), 
+
+    # frontend dashboard route
+    path("", include("apps.pages.urls")),
 ]
 

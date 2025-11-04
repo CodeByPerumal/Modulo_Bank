@@ -29,11 +29,16 @@ class Account(models.Model):
             self.account_number = f"{prefix}{timezone.now().strftime('%Y%m%d%H%M%S')}"
         super().save(*args, **kwargs)
         '''
+    # def save(self, *args, **kwargs):
+    #     # Always generate a truly unique account number if not set
+    #     if not self.account_number:
+    #         self.account_number = self._generate_unique_account_number()
+    #     super().save(*args, **kwargs)
     def save(self, *args, **kwargs):
-        # Always generate a truly unique account number if not set
-        if not self.account_number:
-            self.account_number = self._generate_unique_account_number()
+        if self.balance < 0:
+            raise ValueError("Account balance cannot be negative.")
         super().save(*args, **kwargs)
+
 
     def _generate_unique_account_number(self):
         """Generate a unique 12-digit account number with prefix."""
