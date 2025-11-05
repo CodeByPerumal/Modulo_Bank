@@ -24,13 +24,13 @@ from apps.users.models import User
 
 def get_api_base_url():
     """
-    Returns the correct API base URL.
-    Uses 0.0.0.0:8000 for internal API access on Render,
-    and 127.0.0.1:8000 for local development.
+    Correct API base for both local and Render.
     """
     if "RENDER" in os.environ:
-        return "http://0.0.0.0:8000/api/v1"
-    return os.environ.get("API_BASE_URL", getattr(settings, "API_BASE_URL", "http://127.0.0.1:8000/api/v1"))
+        port = os.environ.get("PORT", "10000")  # Render internal port
+        return f"http://127.0.0.1:{port}/api/v1"
+    return "http://127.0.0.1:8000/api/v1"
+
 
 
 def health_check(request):
