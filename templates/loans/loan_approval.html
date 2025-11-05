@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Loan Approval - Modulo Bank{% endblock %}
+
+{% block content %}
+<section class="container py-5">
+  <h2 class="text-center text-primary mb-4">Pending Loan Approvals</h2>
+
+  {% if pending_loans %}
+  <div class="table-responsive">
+    <table class="table table-bordered align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>User</th>
+          <th>Account</th>
+          <th>Loan Type</th>
+          <th>Principal</th>
+          <th>Interest (%)</th>
+          <th>Term (Months)</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for loan in pending_loans %}
+        <tr>
+          <td>{{ loan.user.username }}</td>
+          <td>{{ loan.account.account_number }}</td>
+          <td>{{ loan.loan_type }}</td>
+          <td>₹{{ loan.principal_amount }}</td>
+          <td>{{ loan.interest_rate }}</td>
+          <td>{{ loan.term_months }}</td>
+          <td>
+            <span class="badge bg-warning">{{ loan.status }}</span>
+          </td>
+          <td>
+            <form method="POST" style="display:inline;">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="APPROVE">
+              <button formaction="{% url 'loan-approval-action' loan.id %}" class="btn btn-success btn-sm">Approve</button>
+            </form>
+            <form method="POST" style="display:inline;">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="REJECT">
+              <button formaction="{% url 'loan-approval-action' loan.id %}" class="btn btn-danger btn-sm">Reject</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+    <p class="text-center text-muted">No pending loans.</p>
+  {% endif %}
+</section>
+{% endblock %}

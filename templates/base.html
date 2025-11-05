@@ -11,24 +11,33 @@
 </head>
 
 <body class="bg-light">
-  <!-- Navbar -->
-  <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm fixed-top">
-    <div class="container">
-      <a class="navbar-brand fw-bold" href="/">Modulo Bank</a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav ms-auto">
-          <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
-          <li class="nav-item"><a class="nav-link" href="/about/">About</a></li>
-          <li class="nav-item"><a class="nav-link" href="/contact/">Contact</a></li>
-          <li class="nav-item"><a class="nav-link" href="/login/">Login</a></li>
-          <li class="nav-item"><a class="nav-link" href="/register/">Sign Up</a></li>
-        </ul>
+ <!-- templates/base.html -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
+  <div class="container-fluid">
+    <a class="navbar-brand fw-bold" href="/">Modulo Bank</a>
+    <ul class="navbar-nav ms-auto">
+      <li class="nav-item"><a class="nav-link" href="/about/">About</a></li>
+      <li class="nav-item"><a class="nav-link" href="/contact/">Contact</a></li>
+      <li class="nav-item"><a class="nav-link" href="/login/">Login</a></li>
+      <li class="nav-item"><a class="nav-link" href="/register/">Register</a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url "dashboard" %}">Dashboard</a></li>
+      <li class="nav-item"><a class="nav-link" href="/logout/">Logout</a></li>
+
+      
+    </ul>
+  </div>
+</nav>
+<!-- Message alerts -->
+  {% if messages %}
+  <div class="container mt-3">
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
       </div>
-    </div>
-  </nav>
+    {% endfor %}
+  </div>
+  {% endif %}
 
   <main class="mt-5 pt-5">
     {% block content %}{% endblock %}

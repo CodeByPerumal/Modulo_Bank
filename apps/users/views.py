@@ -7,7 +7,12 @@ from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAdminUser
-from django.contrib.auth import get_user_model
+from .permissions import IsAdmin, IsCustomer
+from .serializers import UserProfileUpdateSerializer, AdminUserRoleUpdateSerializer
+from rest_framework.views import APIView
+from rest_framework import status
+from rest_framework.permissions import IsAdminUser
+
 
 # ✅ Import all serializers used in this file
 from apps.users.serializers import (
@@ -33,7 +38,33 @@ class RegisterView(generics.CreateAPIView):
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
-    permission_classes = [permissions.AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+        data = response.data
+        access = data.get("access")
+        refresh = data.get("refresh")
+
+        # Store tokens in cookies for session persistence
+        if access:
+            response.set_cookie(
+                key="access",
+                value=access,
+                httponly=True,
+                samesite="Lax",
+                secure=False,  # Set True if HTTPS
+            )
+        if refresh:
+            response.set_cookie(
+                key="refresh",
+                value=refresh,
+                httponly=True,
+                samesite="Lax",
+                secure=False,
+            )
+
+        return response
+
 
 
 class ProfileView(generics.RetrieveAPIView):
@@ -51,11 +82,6 @@ class ProfileView(generics.RetrieveAPIView):
         }
         return Response(data)
     
-
-from .permissions import IsAdmin, IsCustomer
-from .serializers import UserProfileUpdateSerializer, AdminUserRoleUpdateSerializer
-
-# ✅ Customer: Update their own profile
 class UpdateUserProfileView(generics.UpdateAPIView):
     serializer_class = UserProfileUpdateSerializer
     permission_classes = [permissions.IsAuthenticated, IsCustomer]
@@ -77,10 +103,6 @@ class AdminChangeUserRoleView(generics.UpdateAPIView):
     serializer_class = AdminUserRoleUpdateSerializer
     permission_classes = [permissions.IsAuthenticated, IsAdmin]
     lookup_field = 'id'
-
-from rest_framework.views import APIView
-from rest_framework import status
-from rest_framework.permissions import IsAdminUser
 
 class ChangeUserRoleView(APIView):
     """
@@ -137,3 +159,4 @@ class ListUsersView(generics.ListAPIView):
     serializer_class = UserListSerializer
     permission_classes = [IsAdminUser]
 
+    

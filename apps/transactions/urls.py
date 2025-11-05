@@ -5,6 +5,7 @@ from .views import (
     DepositView,
     WithdrawView,
     TransactionDashboardView,
+    TransactionListCreateView
 )
 urlpatterns = [
     path('transfer/', TransactionCreateView.as_view(), name='transfer-create'),
@@ -13,6 +14,7 @@ urlpatterns = [
     path('withdraw/', WithdrawView.as_view(), name='transaction-withdraw'),
     path('dashboard/', TransactionDashboardView.as_view(), name='transaction-dashboard'),
     path("dashboard/view/", TransactionDashboardView.as_view(), name="dashboard-api"),
+    path('', TransactionListCreateView.as_view(), name='transaction-list-create'),
 
 ]
 

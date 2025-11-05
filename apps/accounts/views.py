@@ -2,7 +2,9 @@ from rest_framework import generics, permissions
 from apps.accounts.models import Account
 from apps.accounts.serializers import AccountSerializer, AccountCreateSerializer
 from apps.users.permissions import IsAdmin, IsCustomer
-
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework import permissions
 
 class AccountCreateView(generics.CreateAPIView):
     """
@@ -43,14 +45,6 @@ class AccountDetailView(generics.RetrieveAPIView):
         if user.role == "admin":
             return Account.objects.all()
         return Account.objects.filter(user=user)
-
-
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from rest_framework import permissions
-from apps.accounts.models import Account
-from apps.accounts.serializers import AccountSerializer
-from apps.users.permissions import IsAdmin, IsCustomer
 
 
 class AccountBalanceView(APIView):

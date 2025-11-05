@@ -1,0 +1,23 @@
+<!-- notifications_dropdown.html -->
+<div class="dropdown">
+  <button class="btn btn-warning dropdown-toggle" type="button" id="notificationsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+    🔔 Notifications
+    {% if unread_count > 0 %}
+      <span class="badge bg-danger">{{ unread_count }}</span>
+    {% endif %}
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationsDropdown" style="width: 300px;">
+    {% if notifications %}
+      {% for notification in notifications %}
+        <li class="dropdown-item {% if not notification.is_read %}fw-bold{% endif %}">
+          <div>
+            <small class="text-muted">{{ notification.created_at|date:"M d, Y H:i" }}</small>
+          </div>
+          <div>{{ notification.message }}</div>
+        </li>
+      {% endfor %}
+    {% else %}
+      <li class="dropdown-item text-muted text-center">No notifications</li>
+    {% endif %}
+  </ul>
+</div>

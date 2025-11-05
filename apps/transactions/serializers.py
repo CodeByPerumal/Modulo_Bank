@@ -3,43 +3,59 @@ from django.db import transaction as db_transaction
 from apps.accounts.models import Account
 from apps.transactions.models import Transaction
 
-
 class TransactionSerializer(serializers.ModelSerializer):
+    from_account = serializers.PrimaryKeyRelatedField(
+        queryset=Account.objects.all(), write_only=True
+    )
+    to_account = serializers.PrimaryKeyRelatedField(
+        queryset=Account.objects.all(), write_only=True
+    )
+
     class Meta:
         model = Transaction
-        fields = ['id', 'sender', 'receiver', 'amount', 'status', 'timestamp', 'description']
-        read_only_fields = ['id', 'status', 'timestamp']
+        fields = [
+            "id",
+            "from_account",
+            "to_account",
+            "amount",
+            "description",
+            "status",
+            "timestamp",
+        ]
+        read_only_fields = ["id", "status", "timestamp"]
 
     def validate(self, attrs):
-        sender = attrs['sender']
-        receiver = attrs['receiver']
-        amount = attrs['amount']
-        user = self.context['request'].user
+        from_account = attrs.get("from_account")
+        to_account = attrs.get("to_account")
+        amount = attrs.get("amount")
 
-        if sender.user != user:
-            raise serializers.ValidationError("You can only transfer from your own account.")
-        if sender == receiver:
-            raise serializers.ValidationError("Sender and receiver accounts cannot be the same.")
+        if from_account == to_account:
+            raise serializers.ValidationError("Cannot transfer to the same account.")
+
         if amount <= 0:
-            raise serializers.ValidationError("Amount must be positive.")
-        if sender.balance < amount:
-            raise serializers.ValidationError("Insufficient balance in sender account.")
+            raise serializers.ValidationError("Transfer amount must be greater than zero.")
+
+        if from_account.balance < amount:
+            raise serializers.ValidationError("Insufficient balance in the sender account.")
 
         return attrs
 
     def create(self, validated_data):
-        sender = validated_data['sender']
-        receiver = validated_data['receiver']
-        amount = validated_data['amount']
+        from_account = validated_data.pop("from_account")
+        to_account = validated_data.pop("to_account")
+        amount = validated_data["amount"]
 
         with db_transaction.atomic():
-            sender.balance -= amount
-            sender.save()
+            from_account.balance -= amount
+            from_account.save()
 
-            receiver.balance += amount
-            receiver.save()
+            to_account.balance += amount
+            to_account.save()
 
-            validated_data['status'] = 'SUCCESS'
+            validated_data["sender"] = from_account
+            validated_data["receiver"] = to_account
+            validated_data["status"] = "SUCCESS"
+
             transaction_obj = Transaction.objects.create(**validated_data)
 
         return transaction_obj

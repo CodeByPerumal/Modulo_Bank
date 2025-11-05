@@ -51,8 +51,6 @@ INSTALLED_APPS = [
     'apps.audit',
     'apps.notifications',
     'apps.reports',
-    
-
 ]
 
 MIDDLEWARE = [
@@ -64,9 +62,21 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "apps.audit.middleware.AuditLogMiddleware",
-    
+    "apps.users.middleware.JWTAuthenticationMiddleware",
 
 ]
+
+from datetime import timedelta
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(hours=1),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    "AUTH_HEADER_TYPES": ("Bearer",),
+    "AUTH_COOKIE": "access",  # name of access cookie
+    "AUTH_COOKIE_SECURE": False,  # True in production with HTTPS
+    "AUTH_COOKIE_HTTP_ONLY": True,
+    "AUTH_COOKIE_PATH": "/",
+    "AUTH_COOKIE_SAMESITE": "Lax",
+}
 
 ROOT_URLCONF = "smart_bank.urls"
 
@@ -132,6 +142,7 @@ USE_I18N = True
 
 USE_TZ = True
 
+API_BASE_URL = "http://127.0.0.1:8000/api/v1"
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/

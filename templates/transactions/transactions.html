@@ -1,0 +1,88 @@
+  {% extends "base.html" %}
+  {% load static %}
+
+  {% block content %}
+  <div class="container mt-5">
+    <h2 class="mb-4">💳 Make a Transaction</h2>
+
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+      {{ message }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endfor %}
+
+    <!-- Transaction Form -->
+    <form method="POST" class="card p-4 shadow-sm mb-5">
+      {% csrf_token %}
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">From Account</label>
+          <select name="from_account" class="form-select" required>
+            <option value="">Select your account</option>
+            {% for acc in accounts %}
+            <option value="{{ acc.id }}">{{ acc.account_number }} — {{ acc.account_type }} (₹{{ acc.balance }})</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">To Account</label>
+          <select name="to_account" class="form-select" required>
+            <option value="">Select receiver account</option>
+            {% for acc in accounts %}
+            <option value="{{ acc.id }}">{{ acc.account_number }} — {{ acc.account_type }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label fw-semibold">Amount</label>
+          <input type="number" name="amount" class="form-control" placeholder="Enter amount" min="1" required>
+        </div>
+        <div class="col-md-1 d-flex align-items-end">
+          <button type="submit" class="btn btn-primary w-100">Send</button>
+        </div>
+      </div>
+    </form>
+
+    <!-- Transaction Table -->
+    <div class="card shadow-sm">
+      <div class="card-header bg-light">
+        <h5 class="card-title mb-0">Recent Transactions</h5>
+      </div>
+      <div class="card-body p-0">
+        <table class="table table-striped mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Date</th>
+              <th>Sender</th>
+              <th>Receiver</th>
+              <th>Amount</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% if transactions %}
+            {% for tx in transactions %}
+            <tr>
+              <td>{{ tx.timestamp|date:"Y-m-d H:i" }}</td>
+              <td>{{ tx.sender.account_number }}</td>
+              <td>{{ tx.receiver.account_number }}</td>
+              <td>₹{{ tx.amount }}</td>
+              <td>
+                {% if tx.status == "SUCCESS" %}
+                <span class="badge bg-success">SUCCESS</span>
+                {% else %}
+                <span class="badge bg-secondary">{{ tx.status }}</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+            {% else %}
+            <tr><td colspan="5" class="text-center py-3">No transactions found.</td></tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  {% endblock %}

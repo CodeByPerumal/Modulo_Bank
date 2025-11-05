@@ -1,5 +1,3 @@
-# apps/loans/services.py
-
 from django.db import transaction
 from decimal import Decimal
 from apps.loans.models import Loan

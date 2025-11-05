@@ -22,8 +22,10 @@ class AllLoansView(generics.ListAPIView):
     serializer_class = LoanSerializer
     permission_classes = [permissions.IsAdminUser]
 
+from rest_framework.authentication import SessionAuthentication
 class LoanApprovalView(generics.UpdateAPIView):
     queryset = Loan.objects.all()
     serializer_class = LoanApprovalSerializer
+    authentication_classes = [SessionAuthentication]
     permission_classes = [permissions.IsAdminUser]
     lookup_field = 'id'

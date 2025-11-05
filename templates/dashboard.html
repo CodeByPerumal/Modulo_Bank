@@ -1,39 +1,156 @@
 {% extends "base.html" %}
 {% block title %}Dashboard - Modulo Bank{% endblock %}
+<!-- Include Notifications Dropdown -->
 
 {% block content %}
+{% include "notify/notifications_dropdown.html" %}
 <section class="container py-5">
   <h2 class="fw-bold text-primary text-center mb-4">Welcome Back to Modulo Bank</h2>
   <p class="text-center text-muted mb-5">Here’s an overview of your financial activity and insights.</p>
+{% if user.is_staff %}
+<a href="{% url 'admin-user-list-page' %}" class="btn btn-info mt-3">
+  👤 Manage Users
+</a>
+{% endif %}
+
+
 
   <!-- Summary Cards -->
-  <div class="row g-4 mb-4">
-    <div class="col-md-4">
-      <div class="card shadow-sm border-primary">
-        <div class="card-body text-center">
-          <h6 class="text-uppercase text-muted">Total Accounts</h6>
-          <h3 class="fw-bold text-primary">3</h3>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-4">
-      <div class="card shadow-sm border-success">
-        <div class="card-body text-center">
-          <h6 class="text-uppercase text-muted">Total Balance</h6>
-          <h3 class="fw-bold text-success">₹2,45,000</h3>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-4">
-      <div class="card shadow-sm border-danger">
-        <div class="card-body text-center">
-          <h6 class="text-uppercase text-muted">Fraud Alerts</h6>
-          <h3 class="fw-bold text-danger">1</h3>
-        </div>
+<div class="row g-4 mb-4">
+  <div class="col-md-3">
+    <div class="card shadow-sm border-primary">
+      <div class="card-body text-center">
+        <h3 class="fw-bold text-primary">{{ total_accounts }}</h3>
+        <a href="{% url 'accounts-list' %}" class="btn btn-outline-primary btn-sm mt-2">
+          View Accounts
+        </a>
+
       </div>
     </div>
   </div>
 
+  <div class="col-md-3">
+    <div class="card shadow-sm border-success">
+      <div class="card-body text-center">
+        <h6 class="text-uppercase text-muted">Total Balance</h6>
+        <h3 class="fw-bold text-success">₹{{ total_balance }}</h3>
+      </div>
+    </div>
+  </div>
+
+<div class="col-md-3">
+  <div class="card shadow-sm border-danger">
+    <div class="card-body text-center">
+      <h6 class="text-uppercase text-muted">Fraud Alerts</h6>
+      <h3 class="fw-bold text-danger">{{ fraud_alerts }}</h3>
+    </div>
+  </div>
+</div>
+
+
+
+  <div class="col-md-3">
+    <div class="card shadow-sm border-info">
+      <div class="card-body text-center">
+        <h6 class="text-uppercase text-muted">Actions</h6>
+        <a href="{% url 'accounts-create' %}" class="btn btn-info btn-sm text-white mt-2">
+          + Open Account
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+  <!-- Loan Buttons -->
+  <div class="d-flex gap-2 mb-4">
+    <a href="{% url 'loan-apply' %}" class="btn btn-warning">
+      💰 Apply for Loan
+    </a>
+    <a href="{% url 'my-loans' %}" class="btn btn-secondary">
+      📄 View My Loans
+    </a>
+  </div>
+
+<a href="{% url 'transactions-page' %}" class="btn btn-outline-primary mt-3">
+  💸 View / Make Transactions
+</a>
+
+
+<!-- admin Loan panel -->
+
+{% if user.is_staff %}
+<!-- Pending Loan Approvals (Admin Only) -->
+<h5 class="mt-5 text-primary">Pending Loan Approvals</h5>
+<table class="table table-striped table-sm">
+  <thead>
+    <tr>
+      <th>Loan Type</th>
+      <th>User</th>
+      <th>Account</th>
+      <th>Principal</th>
+      <th>EMI</th>
+      <th>Term (Months)</th>
+      <th>Status</th>
+      <th>Applied On</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for loan in pending_loans %}
+    <tr>
+      <td>{{ loan.loan_type }}</td>
+      <td>{{ loan.user.username }}</td>
+      <td>{{ loan.account.account_number }}</td>
+      <td>₹{{ loan.principal_amount }}</td>
+      <td>₹{{ loan.emi }}</td>
+      <td>{{ loan.term_months }}</td>
+      <td>{{ loan.status }}</td>
+      <td>{{ loan.created_at|date:"Y-m-d H:i" }}</td>
+      <td class="d-flex gap-1">
+        <!-- Approve Button -->
+        <form method="POST" action="{% url 'loan-approval-action' loan.id %}">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="APPROVE">
+          <button type="submit" class="btn btn-sm btn-success">✅ Approve</button>
+        </form>
+
+        <!-- Reject Button -->
+        <form method="POST" action="{% url 'loan-approval-action' loan.id %}">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="REJECT">
+          <button type="submit" class="btn btn-sm btn-danger">❌ Reject</button>
+        </form>
+      </td>
+    </tr>
+    {% empty %}
+      <tr><td colspan="9" class="text-muted text-center">No pending loans</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+
+<!-- Notifications Panel -->
+<div class="card shadow-sm mt-4">
+  <div class="card-header bg-warning fw-semibold">
+    Notifications
+    {% if unread_count > 0 %}
+      <span class="badge bg-danger">{{ unread_count }}</span>
+    {% endif %}
+  </div>
+  <div class="card-body">
+    <ul class="list-group list-group-flush">
+      {% for n in notifications %}
+        <li class="list-group-item {% if not n.is_read %}fw-bold{% endif %}">
+          {{ n.title }} - {{ n.message }}
+          <small class="text-muted d-block">{{ n.created_at|date:"M d, Y H:i" }}</small>
+        </li>
+      {% empty %}
+        <li class="list-group-item text-muted">No notifications</li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+{% comment %} 
   <!-- Recent Transactions -->
   <div class="card shadow-sm mb-4">
     <div class="card-header bg-primary text-white fw-semibold">Recent Transactions</div>
@@ -73,7 +190,17 @@
         </tbody>
       </table>
     </div>
-  </div>
+  </div> {% endcomment %}
+
+
+{% if user.is_staff %}
+<a href="{% url 'audit-logs' %}" class="btn btn-warning mt-3">
+  📝 View Audit Logs
+</a>
+{% endif %}
+
+
+
 
   <!-- Notifications -->
   <div class="card shadow-sm">
@@ -92,5 +219,32 @@
       </ul>
     </div>
   </div>
+
+  <h5 class="mt-4 text-warning">Recent Transactions</h5>
+<table class="table table-sm">
+  <thead>
+    <tr>
+      <th>Date</th>
+      <th>From</th>
+      <th>To</th>
+      <th>Amount</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for t in recent_transactions %}
+      <tr>
+        <td>{{ t.timestamp|date:"M d, Y H:i" }}</td>
+        <td>{{ t.sender.account_number }}</td>
+        <td>{{ t.receiver.account_number }}</td>
+        <td>₹{{ t.amount }}</td>
+        <td>{{ t.status }}</td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="5" class="text-muted text-center">No recent transactions</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+
 </section>
 {% endblock %}

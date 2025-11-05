@@ -21,22 +21,16 @@ class Account(models.Model):
 
     def __str__(self):
         return f"{self.account_number} - {self.user.username}"
-    '''
+ 
     def save(self, *args, **kwargs):
-        # Auto-generate account number if not set
-        if not self.account_number:
-            prefix = self.account_type[:2].upper()
-            self.account_number = f"{prefix}{timezone.now().strftime('%Y%m%d%H%M%S')}"
-        super().save(*args, **kwargs)
-        '''
-    # def save(self, *args, **kwargs):
-    #     # Always generate a truly unique account number if not set
-    #     if not self.account_number:
-    #         self.account_number = self._generate_unique_account_number()
-    #     super().save(*args, **kwargs)
-    def save(self, *args, **kwargs):
+    # Ensure valid balance
         if self.balance < 0:
             raise ValueError("Account balance cannot be negative.")
+
+        # Auto-generate a truly unique account number if missing
+        if not self.account_number:
+            self.account_number = self._generate_unique_account_number()
+
         super().save(*args, **kwargs)
 
 

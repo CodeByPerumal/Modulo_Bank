@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-5">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold">My Accounts</h2>
+    <a href="{% url 'accounts-create' %}" class="btn btn-primary">+ Open New Account</a>
+  </div>
+
+  {% if accounts %}
+  <div class="row">
+    {% for account in accounts %}
+    <div class="col-md-4 mb-3">
+      <div class="card shadow-sm border-0">
+        <div class="card-body">
+          <h5 class="card-title text-primary">{{ account.account_type }}</h5>
+          <p class="card-text mb-1"><strong>Account Number:</strong> {{ account.account_number }}</p>
+          <p class="card-text mb-1"><strong>Balance:</strong> ₹{{ account.balance }}</p>
+          <p><strong>Created on:</strong> {{ account.created_at }}</p>
+
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="alert alert-info text-center">No accounts found. Open your first account!</div>
+  {% endif %}
+</div>
+{% endblock %}
