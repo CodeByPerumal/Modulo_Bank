@@ -17,6 +17,8 @@ from apps.audit.models import AuditLog
 from apps.users.models import User
 
 
+# ---------------------- STATIC PAGES ----------------------
+
 def home_page(request):
     return render(request, "home.html")
 
@@ -29,25 +31,22 @@ def contact_page(request):
     return render(request, "contact.html")
 
 
-# ✅ Updated login_page (Render + Local support)
+# ---------------------- AUTH PAGES ----------------------
+
 def login_page(request):
+    """User login via API"""
     if request.method == "POST":
         username = request.POST.get("username")
         password = request.POST.get("password")
 
-        # Dynamically choose the correct API base URL
         api_base = os.environ.get("API_BASE_URL", settings.API_BASE_URL)
         api_url = f"{api_base}/users/token/"
 
         try:
-            response = requests.post(
-                api_url,
-                json={"username": username, "password": password},
-                timeout=5  # avoid gunicorn hang
-            )
+            response = requests.post(api_url, json={"username": username, "password": password}, timeout=5)
         except requests.exceptions.RequestException as e:
             print("⚠️ Login API error:", e)
-            messages.error(request, "Unable to connect to the authentication server.")
+            messages.error(request, "Unable to connect to authentication server.")
             return redirect("login")
 
         if response.status_code == 200:
@@ -67,8 +66,8 @@ def login_page(request):
     return render(request, "users/login.html")
 
 
-# ✅ Updated register_page (Render + Local support)
 def register_page(request):
+    """User registration via API"""
     if request.method == "POST":
         username = request.POST.get("username")
         email = request.POST.get("email")
@@ -95,7 +94,7 @@ def register_page(request):
             response = requests.post(api_url, json=data, timeout=5)
             response_data = response.json()
         except requests.exceptions.RequestException:
-            messages.error(request, "🚫 Unable to connect to the registration API.")
+            messages.error(request, "🚫 Unable to connect to registration API.")
             return redirect("register")
         except ValueError:
             messages.error(request, "⚠️ Invalid server response.")
@@ -113,6 +112,7 @@ def register_page(request):
 
 
 def logout_page(request):
+    """Clear cookies and log user out"""
     response = redirect("login")
     response.delete_cookie("access")
     response.delete_cookie("refresh")
@@ -120,8 +120,11 @@ def logout_page(request):
     return response
 
 
+# ---------------------- DASHBOARD ----------------------
+
 @login_required(login_url="/login/")
 def dashboard_page(request):
+    """Main dashboard page"""
     user = request.user
 
     total_accounts = Account.objects.filter(user=user).count()
@@ -158,8 +161,11 @@ def dashboard_page(request):
     )
 
 
+# ---------------------- ACCOUNTS ----------------------
+
 @login_required(login_url="/login/")
 def accounts_list_page(request):
+    """List all user accounts"""
     token = request.COOKIES.get("access")
     if not token:
         return redirect("login")
@@ -176,7 +182,41 @@ def accounts_list_page(request):
 
 
 @login_required(login_url="/login/")
+def accounts_create_page(request):
+    """Create a new bank account"""
+    access_token = request.COOKIES.get("access")
+    if not access_token:
+        messages.error(request, "Please log in first.")
+        return redirect("login")
+
+    if request.method == "POST":
+        account_type = request.POST.get("account_type")
+        api_base = os.environ.get("API_BASE_URL", settings.API_BASE_URL)
+        api_url = f"{api_base}/accounts/create/"
+        headers = {"Authorization": f"Bearer {access_token}"}
+        data = {"account_type": account_type}
+
+        try:
+            response = requests.post(api_url, json=data, headers=headers, timeout=5)
+        except requests.exceptions.RequestException:
+            messages.error(request, "Unable to connect to account service.")
+            return redirect("accounts-create")
+
+        if response.status_code == 201:
+            messages.success(request, "✅ Account created successfully!")
+            return redirect("accounts-list")
+        else:
+            messages.error(request, f"⚠️ Failed: {response.text}")
+            return redirect("accounts-create")
+
+    return render(request, "accounts/create.html")
+
+
+# ---------------------- TRANSACTIONS ----------------------
+
+@login_required(login_url="/login/")
 def transactions_page(request):
+    """Handle fund transfers"""
     user = request.user
     accounts = Account.objects.filter(user=user, is_active=True)
 
@@ -228,3 +268,95 @@ def transactions_page(request):
         "transactions/transactions.html",
         {"accounts": accounts, "transactions": transactions},
     )
+
+
+# ---------------------- LOANS ----------------------
+
+@login_required(login_url="/login/")
+def loan_apply_page(request):
+    """Apply for a loan"""
+    user = request.user
+    accounts = Account.objects.filter(user=user, is_active=True)
+
+    if request.method == "POST":
+        account_id = request.POST.get("account")
+        loan_type = request.POST.get("loan_type")
+        principal_amount = request.POST.get("principal_amount")
+        interest_rate = request.POST.get("interest_rate")
+        term_months = request.POST.get("term_months")
+
+        try:
+            principal_amount = Decimal(principal_amount)
+            interest_rate = Decimal(interest_rate)
+            term_months = int(term_months)
+            if principal_amount <= 0 or interest_rate <= 0 or term_months <= 0:
+                raise ValueError
+        except:
+            messages.error(request, "Invalid input values.")
+        else:
+            account = accounts.filter(id=account_id).first()
+            if not account:
+                messages.error(request, "Invalid account selected.")
+            else:
+                loan = Loan.objects.create(
+                    user=user,
+                    account=account,
+                    loan_type=loan_type,
+                    principal_amount=principal_amount,
+                    interest_rate=interest_rate,
+                    term_months=term_months
+                )
+                messages.success(request, f"✅ Loan applied successfully! EMI: ₹{loan.emi}")
+
+    return render(request, "loans/loans_apply.html", {"accounts": accounts})
+
+
+@login_required(login_url="/login/")
+def my_loans_page(request):
+    """List all loans of the current user"""
+    user = request.user
+    loans = Loan.objects.filter(user=user).order_by("-created_at")
+    return render(request, "loans/my_loans.html", {"loans": loans})
+
+
+@login_required(login_url="/login/")
+def loan_approval_action(request, loan_id):
+    """Approve or reject loans (admin only)"""
+    if not request.user.is_staff:
+        messages.error(request, "Unauthorized access.")
+        return redirect("dashboard")
+
+    if request.method == "POST":
+        action = request.POST.get("action")  # APPROVE or REJECT
+        loan = Loan.objects.filter(id=loan_id, status="PENDING").first()
+        if loan:
+            if action == "APPROVE":
+                loan.status = "APPROVED"
+                loan.account.balance += loan.principal_amount
+                loan.account.save()
+            elif action == "REJECT":
+                loan.status = "REJECTED"
+            loan.save()
+            messages.success(request, f"Loan {action}D successfully!")
+        else:
+            messages.error(request, "Loan not found or already processed.")
+
+    return redirect("dashboard")
+
+
+# ---------------------- ADMIN / AUDIT ----------------------
+
+@login_required(login_url="/login/")
+@user_passes_test(lambda u: u.is_staff)
+def audit_logs_page(request):
+    """Display recent audit logs"""
+    audit_logs = AuditLog.objects.all().order_by("-created_at")[:100]
+    return render(request, "audit/audit_logs.html", {"audit_logs": audit_logs})
+
+
+@login_required(login_url="/login/")
+@user_passes_test(lambda u: u.is_staff)
+def admin_users_page(request):
+    """Admin user management"""
+    users = User.objects.all().order_by("-date_joined")
+    return render(request, "users/admin_users.html", {"users": users})
