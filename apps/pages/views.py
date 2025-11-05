@@ -17,7 +17,9 @@ from apps.audit.models import AuditLog
 from apps.users.models import User
 
 
-# ---------------------- STATIC PAGES ----------------------
+# ============================================================
+# STATIC PAGES
+# ============================================================
 
 def home_page(request):
     return render(request, "home.html")
@@ -31,7 +33,9 @@ def contact_page(request):
     return render(request, "contact.html")
 
 
-# ---------------------- AUTH PAGES ----------------------
+# ============================================================
+# AUTHENTICATION PAGES
+# ============================================================
 
 def login_page(request):
     """User login via API"""
@@ -87,7 +91,7 @@ def register_page(request):
             "email": email,
             "phone": phone,
             "password": password,
-            "password2": confirm_password
+            "password2": confirm_password,
         }
 
         try:
@@ -120,7 +124,9 @@ def logout_page(request):
     return response
 
 
-# ---------------------- DASHBOARD ----------------------
+# ============================================================
+# DASHBOARD
+# ============================================================
 
 @login_required(login_url="/login/")
 def dashboard_page(request):
@@ -161,7 +167,9 @@ def dashboard_page(request):
     )
 
 
-# ---------------------- ACCOUNTS ----------------------
+# ============================================================
+# ACCOUNTS
+# ============================================================
 
 @login_required(login_url="/login/")
 def accounts_list_page(request):
@@ -190,7 +198,7 @@ def accounts_create_page(request):
         return redirect("login")
 
     if request.method == "POST":
-        account_type = request.POST.get("account_type")
+        account_type = request.POST.get("account_type", "SAVINGS")
         api_base = os.environ.get("API_BASE_URL", settings.API_BASE_URL)
         api_url = f"{api_base}/accounts/create/"
         headers = {"Authorization": f"Bearer {access_token}"}
@@ -212,7 +220,9 @@ def accounts_create_page(request):
     return render(request, "accounts/create.html")
 
 
-# ---------------------- TRANSACTIONS ----------------------
+# ============================================================
+# TRANSACTIONS
+# ============================================================
 
 @login_required(login_url="/login/")
 def transactions_page(request):
@@ -270,7 +280,9 @@ def transactions_page(request):
     )
 
 
-# ---------------------- LOANS ----------------------
+# ============================================================
+# LOANS
+# ============================================================
 
 @login_required(login_url="/login/")
 def loan_apply_page(request):
@@ -304,7 +316,7 @@ def loan_apply_page(request):
                     loan_type=loan_type,
                     principal_amount=principal_amount,
                     interest_rate=interest_rate,
-                    term_months=term_months
+                    term_months=term_months,
                 )
                 messages.success(request, f"✅ Loan applied successfully! EMI: ₹{loan.emi}")
 
@@ -344,7 +356,9 @@ def loan_approval_action(request, loan_id):
     return redirect("dashboard")
 
 
-# ---------------------- ADMIN / AUDIT ----------------------
+# ============================================================
+# ADMIN / AUDIT
+# ============================================================
 
 @login_required(login_url="/login/")
 @user_passes_test(lambda u: u.is_staff)
