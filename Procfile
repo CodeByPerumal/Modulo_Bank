@@ -1,1 +1,1 @@
-web: gunicorn modulo_bank.wsgi 
+web: gunicorn smart_bank.wsgi
