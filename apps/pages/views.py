@@ -18,6 +18,21 @@ from apps.users.models import User
 
 
 # ============================================================
+# HELPER — Auto-detect API base (Render-safe)
+# ============================================================
+
+def get_api_base_url():
+    """
+    Dynamically returns API base URL.
+    On Render: use localhost to avoid HTTPS self-call timeout.
+    Locally: use API_BASE_URL from settings or .env.
+    """
+    if "RENDER" in os.environ:
+        return "http://127.0.0.1:8000/api/v1"
+    return os.environ.get("API_BASE_URL", getattr(settings, "API_BASE_URL", "http://127.0.0.1:8000/api/v1"))
+
+
+# ============================================================
 # STATIC PAGES
 # ============================================================
 
@@ -43,7 +58,7 @@ def login_page(request):
         username = request.POST.get("username")
         password = request.POST.get("password")
 
-        api_base = os.environ.get("API_BASE_URL", settings.API_BASE_URL)
+        api_base = get_api_base_url()
         api_url = f"{api_base}/users/token/"
 
         try:
@@ -83,7 +98,7 @@ def register_page(request):
             messages.error(request, "❌ Passwords do not match.")
             return redirect("register")
 
-        api_base = os.environ.get("API_BASE_URL", settings.API_BASE_URL)
+        api_base = get_api_base_url()
         api_url = f"{api_base}/users/register/"
 
         data = {
@@ -179,8 +194,10 @@ def accounts_list_page(request):
         return redirect("login")
 
     headers = {"Authorization": f"Bearer {token}"}
+    api_base = get_api_base_url()
+
     try:
-        response = requests.get(f"{settings.API_BASE_URL}/accounts/", headers=headers, timeout=5)
+        response = requests.get(f"{api_base}/accounts/", headers=headers, timeout=5)
         accounts = response.json() if response.status_code == 200 else []
     except Exception as e:
         print("Error fetching accounts:", e)
@@ -199,7 +216,7 @@ def accounts_create_page(request):
 
     if request.method == "POST":
         account_type = request.POST.get("account_type", "SAVINGS")
-        api_base = os.environ.get("API_BASE_URL", settings.API_BASE_URL)
+        api_base = get_api_base_url()
         api_url = f"{api_base}/accounts/create/"
         headers = {"Authorization": f"Bearer {access_token}"}
         data = {"account_type": account_type}
