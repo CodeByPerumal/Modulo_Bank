@@ -1,0 +1,20 @@
+# render.yaml
+services:
+  - type: web
+    name: modulo-bank
+    env: python
+    buildCommand: |
+      pip install -r requirements.txt
+      python manage.py collectstatic --noinput
+    startCommand: gunicorn smart_bank.wsgi:application
+    envVars:
+      - key: DEBUG
+        value: False
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ALLOWED_HOSTS
+        value: "modulo-bank.onrender.com,127.0.0.1,localhost"
+      - key: API_BASE_URL
+        value: "https://modulo-bank.onrender.com/api/v1"
+    plan: free
+    autoDeploy: true
