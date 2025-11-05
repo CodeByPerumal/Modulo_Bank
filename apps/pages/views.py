@@ -7,6 +7,7 @@ from django.conf import settings
 from django.db import transaction as db_transaction
 from django.db.models import Q, Sum
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.http import JsonResponse
 
 from apps.accounts.models import Account
 from apps.transactions.models import Transaction
@@ -23,13 +24,18 @@ from apps.users.models import User
 
 def get_api_base_url():
     """
-    Dynamically returns API base URL.
-    On Render: use localhost to avoid HTTPS self-call timeout.
-    Locally: use API_BASE_URL from settings or .env.
+    Returns the correct API base URL.
+    Uses 0.0.0.0:8000 for internal API access on Render,
+    and 127.0.0.1:8000 for local development.
     """
     if "RENDER" in os.environ:
-        return "http://127.0.0.1:8000/api/v1"
+        return "http://0.0.0.0:8000/api/v1"
     return os.environ.get("API_BASE_URL", getattr(settings, "API_BASE_URL", "http://127.0.0.1:8000/api/v1"))
+
+
+def health_check(request):
+    """Used by Render for uptime monitoring"""
+    return JsonResponse({"status": "ok"})
 
 
 # ============================================================
