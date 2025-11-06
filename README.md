@@ -76,5 +76,22 @@ It provides APIs for **user management, account creation, fund transfers, loan p
 
 ---
 
-## 🧠 System Architecture
+## 🧠 System Architecture (Mermaid Diagram)
+
+```mermaid
+flowchart TD
+    A[User / Admin / Auditor] --> B(API Layer)
+    B --> C[Django REST Framework]
+    C --> D[Modular Apps]
+    D -->|Manages| E[(SQLite3 Database)]
+
+    subgraph D[Modulo Bank Modules]
+        D1[Users]
+        D2[Accounts]
+        D3[Transactions]
+        D4[Loans]
+        D5[Fraud Detection]
+        D6[Audit Logs]
+    end
+
 
