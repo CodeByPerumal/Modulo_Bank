@@ -58,35 +58,34 @@ def contact_page(request):
 # AUTHENTICATION PAGES
 # ============================================================
 
+# apps/pages/views.py (replace just login_page)
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework.exceptions import ValidationError
+
 def login_page(request):
-    """User login via API"""
+    """User login without HTTP self-call (avoids Gunicorn deadlock)"""
     if request.method == "POST":
         username = request.POST.get("username")
         password = request.POST.get("password")
 
-        api_base = get_api_base_url()
-        api_url = f"{api_base}/users/token/"
-
+        # Use SimpleJWT serializer directly (no HTTP request)
+        serializer = TokenObtainPairSerializer(data={"username": username, "password": password})
         try:
-            response = requests.post(api_url, json={"username": username, "password": password}, timeout=5)
-        except requests.exceptions.RequestException as e:
-            print("⚠️ Login API error:", e)
-            messages.error(request, "Unable to connect to authentication server.")
-            return redirect("login")
-
-        if response.status_code == 200:
-            data = response.json()
-            access = data.get("access")
-            refresh = data.get("refresh")
-
-            res = redirect("dashboard")
-            res.set_cookie("access", access, httponly=True)
-            res.set_cookie("refresh", refresh, httponly=True)
-            messages.success(request, f"Welcome back, {username}!")
-            return res
-        else:
+            serializer.is_valid(raise_exception=True)
+        except ValidationError:
             messages.error(request, "Invalid username or password.")
             return redirect("login")
+
+        tokens = serializer.validated_data
+        access = tokens.get("access")
+        refresh = tokens.get("refresh")
+
+        res = redirect("dashboard")
+        # set HttpOnly cookies so the rest of your pages can call the API with Bearer
+        res.set_cookie("access", access, httponly=True)
+        res.set_cookie("refresh", refresh, httponly=True)
+        messages.success(request, f"Welcome back, {username}!")
+        return res
 
     return render(request, "users/login.html")
 

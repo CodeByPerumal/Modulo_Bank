@@ -17,5 +17,7 @@ urlpatterns = [
     path('loans/approve/<uuid:loan_id>/', views.loan_approval_action, name='loan-approval-action'),
     path('audit/', views.audit_logs_page, name='audit-logs'),
     path('dashboard/admin/users/', views.admin_users_page, name='admin-user-list-page'),
+    path("healthz/", views.health_check, name="health-check"),
+
 
 ]
